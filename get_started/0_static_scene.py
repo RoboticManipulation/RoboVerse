@@ -165,3 +165,6 @@ if __name__ == "__main__":
     save_path = f"get_started/output/0_static_scene_{args.sim}.png"
     log.info(f"Saving image to {save_path}")
     imageio.imwrite(save_path, next(iter(obs_tensor.cameras.values())).rgb[0].cpu().numpy())
+
+    while True:
+        pass
