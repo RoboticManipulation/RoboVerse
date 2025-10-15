@@ -16,5 +16,8 @@
                 "terminal.integrated.profiles.linux": { "bash": { "path": "/bin/bash" } }
             }
         }
-    }
+    },
+    "runArgs": [
+        "--gpus", "all"
+    ]
 }
