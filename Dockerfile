@@ -90,22 +90,22 @@ RUN echo "mamba activate metasim" >> ${HOME}/.bashrc
 RUN cd ${HOME}/RoboVerse \
     && eval "$(mamba shell hook --shell bash)" \
     && mamba activate metasim \
-    && uv pip install -e ".[isaaclab,mujoco,sapien3,pybullet]" \
+    && uv pip install -e ".[isaaclab211,mujoco,sapien3,pybullet]" \
     && uv cache clean
 
 # Test proxy connection
 # RUN wget --method=HEAD --output-document - https://www.google.com/
 
 ## Install IsaacLab v1.4.1
-RUN mkdir -p ${HOME}/packages \
-    && cd ${HOME}/packages \
-    && eval "$(mamba shell hook --shell bash)" \
-    && mamba activate metasim \
-    && git clone --depth 1 --branch v1.4.1 https://github.com/isaac-sim/IsaacLab.git IsaacLab \
-    && cd IsaacLab \
-    && sed -i '/^EXTRAS_REQUIRE = {$/,/^}$/c\EXTRAS_REQUIRE = {\n    "sb3": [],\n    "skrl": [],\n    "rl-games": [],\n    "rsl-rl": [],\n    "robomimic": [],\n}' source/extensions/omni.isaac.lab_tasks/setup.py \
-    && ./isaaclab.sh -i \
-    && pip cache purge
+# RUN mkdir -p ${HOME}/packages \
+#     && cd ${HOME}/packages \
+#     && eval "$(mamba shell hook --shell bash)" \
+#     && mamba activate metasim \
+#     && git clone --depth 1 --branch v1.4.1 https://github.com/isaac-sim/IsaacLab.git IsaacLab \
+#     && cd IsaacLab \
+#     && sed -i '/^EXTRAS_REQUIRE = {$/,/^}$/c\EXTRAS_REQUIRE = {\n    "sb3": [],\n    "skrl": [],\n    "rl-games": [],\n    "rsl-rl": [],\n    "robomimic": [],\n}' source/extensions/omni.isaac.lab_tasks/setup.py \
+#     && ./isaaclab.sh -i \
+#     && pip cache purge
 
 ## Install IsaacLab v2.1.0
 # RUN mkdir -p ${HOME}/packages \
@@ -117,6 +117,30 @@ RUN mkdir -p ${HOME}/packages \
 #     && sed -i '/^EXTRAS_REQUIRE = {/,/^}$/c\EXTRAS_REQUIRE = {\n    "sb3": [],\n    "skrl": [],\n    "rl-games": [],\n    "rsl-rl": [],\n}' source/isaaclab_rl/setup.py \
 #     && sed -i 's/if platform\.system() == "Linux":/if False:/' source/isaaclab_mimic/setup.py \
 #     && ./isaaclab.sh -i \
+#     && pip cache purge
+
+## Install IsaacLab v2.1.1
+RUN mkdir -p ${HOME}/packages \
+    && cd ${HOME}/packages \
+    && eval "$(mamba shell hook --shell bash)" \
+    && mamba activate metasim \
+    && git clone --depth 1 --branch v2.1.1 https://github.com/isaac-sim/IsaacLab.git IsaacLab211 \
+    && cd IsaacLab211 \
+    && sed -i '/^EXTRAS_REQUIRE = {/,/^}$/c\EXTRAS_REQUIRE = {\n    "sb3": [],\n    "skrl": [],\n    "rl-games": [],\n    "rsl-rl": [],\n}' source/isaaclab_rl/setup.py \
+    && sed -i 's/if platform\.system() == "Linux":/if False:/' source/isaaclab_mimic/setup.py \
+    && ./isaaclab.sh -i none \
+    && pip cache purge
+
+## Install IsaacLab v2.2.1
+# RUN mkdir -p ${HOME}/packages \
+#     && cd ${HOME}/packages \
+#     && eval "$(mamba shell hook --shell bash)" \
+#     && mamba activate metasim \
+#     && git clone --depth 1 --branch v2.2.1 https://github.com/isaac-sim/IsaacLab.git IsaacLab221 \
+#     && cd IsaacLab221 \
+#     && sed -i '/^EXTRAS_REQUIRE = {/,/^}$/c\EXTRAS_REQUIRE = {\n    "sb3": [],\n    "skrl": [],\n    "rl-games": [],\n    "rsl-rl": [],\n}' source/isaaclab_rl/setup.py \
+#     && sed -i 's/if platform\.system() == "Linux":/if False:/' source/isaaclab_mimic/setup.py \
+#     && ./isaaclab.sh -i none \
 #     && pip cache purge
 
 ########################################################
