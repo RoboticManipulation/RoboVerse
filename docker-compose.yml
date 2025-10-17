@@ -14,16 +14,26 @@ services:
     privileged: true
     runtime: nvidia
     environment:
-      - DISPLAY=${DISPLAY}
+      - DISPLAY=${DISPLAY}                       # forwarded by VS Code helper
+      - QT_X11_NO_MITSHM=1                      # avoid MIT-SHM issues
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=graphics,utility,compute
+      # VirtualGL: tell it where to do 3D rendering (host GPU X display)
+      # If your host has a GPU X server on :0, keep this:
+      # - VGL_DISPLAY=:0
       - LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
-      ## Below is for IsaacSim/IsaacLab Accept EULA, see:
-      ## - https://isaac-sim.github.io/IsaacLab/main/source/deployment/docker.html#running-pre-built-isaac-lab-container
-      ## - https://docs.omniverse.nvidia.com/isaacsim/latest/installation/install_python.html#running-isaac-sim
       - ACCEPT_EULA=Y
       - PRIVACY_CONSENT=Y
       - OMNI_KIT_ACCEPT_EULA=YES
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /tmp/.X11-unix:/tmp/.X11-unix           # 2D X path to your local desktop
       - /usr/local/cuda:/usr/local/cuda
       - ./:/home/${DOCKER_USER}/RoboVerse
-    tty: true  # Keeps the container running interactively
+    devices:
+      - /dev/dri:/dev/dri                       # expose DRM nodes (helps some stacks)
+    tty: true
+    ipc: host
+    # ports:
+    #   - "47995:47995/tcp"   # for LIVESTREAM=1 (native client)
+    #   - "49100:49100/tcp"   # for LIVESTREAM=2 (WebRTC)
+    #   - "49100:49100/udp"   # (WebRTC media)

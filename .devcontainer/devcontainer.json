@@ -18,6 +18,17 @@
         }
     },
     "runArgs": [
-        "--gpus", "all"
-    ]
+        "--gpus=all",
+        "--device=/dev/dri:/dev/dri",
+        "--env", "NVIDIA_VISIBLE_DEVICES=all",
+        "--env", "NVIDIA_DRIVER_CAPABILITIES=all"
+    ],
+    "mounts": [
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
+    ],
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}",
+        "QT_X11_NO_MITSHM": "1",
+        "LIBGL_ALWAYS_INDIRECT": "1"
+    }
 }

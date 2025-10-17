@@ -39,6 +39,20 @@ RUN apt update && apt install -y --no-install-recommends \
     && apt clean
 RUN apt install -y -o Dpkg::Options::="--force-confold" sudo
 
+## Install VirtualGL installation to share GUI remotely
+## Test with: vglrun +v glxgears
+## Show details with: vglrun -d egl glxinfo -B
+RUN apt install -y --no-install-recommends libxtst6 libxv1 libturbojpeg && apt clean
+RUN wget https://github.com/VirtualGL/virtualgl/releases/download/3.1.4/virtualgl_3.1.4_amd64.deb
+RUN dpkg -i virtualgl_3.1.4_amd64.deb
+RUN echo "export QT_X11_NO_MITSHM=1" >> ${HOME}/.bashrc
+RUN echo "export VGL_DISPLAY=egl" >> ${HOME}/.bashrc
+RUN echo "export VGL_CLIENT=localhost" >> ${HOME}/.bashrc
+RUN echo "export VGL_QUAL=100" >> ${HOME}/.bashrc
+RUN echo "export VGL_FPS=60" >> ${HOME}/.bashrc
+RUN echo "export VGL_COMPRESS=0" >> ${HOME}/.bashrc
+
+## Switch user
 USER ${DOCKER_USER}
 WORKDIR ${HOME}
 
