@@ -39,6 +39,9 @@ RUN apt update && apt install -y --no-install-recommends \
     && apt clean
 RUN apt install -y -o Dpkg::Options::="--force-confold" sudo
 
+## Install CuRoBo
+# RUN apt install -y git-lfs
+
 ## Install VirtualGL installation to share GUI remotely
 ## Test with: vglrun +v glxgears
 ## Show details with: vglrun -d egl glxinfo -B
@@ -51,6 +54,9 @@ RUN echo "export VGL_CLIENT=localhost" >> ${HOME}/.bashrc
 RUN echo "export VGL_QUAL=100" >> ${HOME}/.bashrc
 RUN echo "export VGL_FPS=60" >> ${HOME}/.bashrc
 RUN echo "export VGL_COMPRESS=0" >> ${HOME}/.bashrc
+RUN echo "export PYOPENGL_PLATFORM=egl" >> ${HOME}/.bashrc
+# Deactivate importing viser as viewer to pyroki
+RUN echo "export PYROKI_ENABLE_VIEWER=0" >> ${HOME}/.bashrc
 
 ## Switch user
 USER ${DOCKER_USER}
@@ -74,6 +80,14 @@ RUN wget https://astral.sh/uv/install.sh \
     && bash install.sh \
     && rm install.sh
 ENV PATH=${HOME}/.local/bin:$PATH
+
+## Clone pyroki for later installation
+RUN mkdir -p ${HOME}/packages \
+    && git clone https://github.com/RoboticManipulation/pyroki.git ${HOME}/packages/pyroki
+
+## Install CuRoBo
+# git submodule update --init --recursive
+# cd third_party/curobo
 
 ########################################################
 ## Clone RoboVerse
@@ -105,6 +119,9 @@ RUN cd ${HOME}/RoboVerse \
     && eval "$(mamba shell hook --shell bash)" \
     && mamba activate metasim \
     && uv pip install -e ".[isaaclab211,mujoco,sapien3,pybullet]" \
+    && uv pip install -e "${HOME}/packages/pyroki/" \
+    # && uv pip install -e "${HOME}/third_party/curobo/" --no-build-isolation \
+    && uv pip install pygame \
     && uv cache clean
 
 # Test proxy connection
@@ -166,6 +183,9 @@ RUN cd ${HOME}/RoboVerse \
     && eval "$(mamba shell hook --shell bash)" \
     && mamba activate metasim_genesis \
     && uv pip install -e ".[genesis]" \
+    && uv pip install -e "${HOME}/packages/pyroki/" \
+    # && uv pip install -e "${HOME}/third_party/curobo/" --no-build-isolation \
+    && uv pip install pygame \
     && uv cache clean
 
 ########################################################
@@ -183,6 +203,7 @@ RUN cd ${HOME}/RoboVerse \
     && eval "$(mamba shell hook --shell bash)" \
     && mamba activate metasim_isaacgym \
     && uv pip install -e ".[isaacgym]" "isaacgym @ ${HOME}/packages/isaacgym/python" \
+    && uv pip install pygame \
     && uv cache clean
 ## Fix error: libpython3.8.so.1.0: cannot open shared object file
 ## Refer to https://stackoverflow.com/a/75872751

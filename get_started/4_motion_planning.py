@@ -55,7 +55,7 @@ class Args:
 
     ## Others
     num_envs: int = 1
-    headless: bool = True
+    headless: bool = False #True
     solver: Literal["curobo", "pyroki"] = "pyroki"
 
     def __post_init__(self):
