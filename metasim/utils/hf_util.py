@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-REPO_ID = "RoboVerseOrg/roboverse_data"
+REPO_ID = "robotic-manipulation/roboverse_data"
 LOCAL_DIR = "roboverse_data"
 
 hf_api = HfApi()
@@ -38,7 +38,7 @@ def check_and_download_single(filepath: str):
         return
     else:
         ## In this case, we didn't find the file in the local directory, the circumstance is complicated.
-        hf_exists = hf_api.file_exists(REPO_ID, os.path.relpath(filepath, LOCAL_DIR), repo_type="dataset")
+        hf_exists = hf_api.file_exists(REPO_ID, os.path.relpath(filepath, LOCAL_DIR), repo_type="dataset", revision="master")
 
         ## Make sure the file exists in the huggingface dataset.
         if not hf_exists:
@@ -60,6 +60,7 @@ def check_and_download_single(filepath: str):
                 repo_id=REPO_ID,
                 filename=os.path.relpath(filepath, LOCAL_DIR),
                 repo_type="dataset",
+                revision="master",
                 local_dir=LOCAL_DIR,
             )
             log.info(f"File {filepath} downloaded from the huggingface dataset.")
