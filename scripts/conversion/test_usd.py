@@ -14,10 +14,10 @@ class Args:
     """The path to the USD file to load"""
     articulation: bool = False
     """Whether to load as articulation object"""
-    fix_texture: bool = True
-    """Whether to fix the materials"""
-    ground: bool = False
-    """Whether to add ground"""
+    # fix_texture: bool = True
+    # """Whether to fix the materials"""
+    # ground: bool = False
+    # """Whether to add ground"""
     gravity: bool = False
     """Whether to enable gravity"""
     init_pos: tuple[float, float, float] = (0.0, 0.0, 0.0)
@@ -33,7 +33,8 @@ args = tyro.cli(Args)
 def launch_isaaclab():
     import argparse
 
-    from omni.isaac.lab.app import AppLauncher
+    # from omni.isaac.lab.app import AppLauncher
+    from isaaclab.app import AppLauncher
 
     parser = argparse.ArgumentParser()
     AppLauncher.add_app_launcher_args(parser)
@@ -50,9 +51,16 @@ simulation_app = launch_isaaclab()
 #########################################
 
 import omni
-import omni.isaac.lab.sim as sim_utils
+# import omni.isaac.lab.sim as sim_utils
+import isaaclab.sim as sim_utils
 from loguru import logger as log
-from omni.isaac.lab.assets import (
+# from omni.isaac.lab.assets import (
+#     Articulation,
+#     ArticulationCfg,
+#     RigidObject,
+#     RigidObjectCfg,
+# )
+from isaaclab.assets import (
     Articulation,
     ArticulationCfg,
     RigidObject,
@@ -66,8 +74,8 @@ try:
 except ModuleNotFoundError:
     import isaacsim.core.utils.prims as prim_utils
 
-from metasim.sim.isaaclab.utils.ground_util import create_ground, set_ground_material, set_ground_material_scale
-from metasim.sim.isaaclab.utils.usd_util import ShaderFixer
+# from metasim.sim.isaaclab.utils.ground_util import create_ground, set_ground_material, set_ground_material_scale
+# from metasim.sim.isaaclab.utils.usd_util import ShaderFixer
 
 log.configure(handlers=[{"sink": RichHandler(), "format": "{message}"}])
 
@@ -108,15 +116,15 @@ def design_scene():
         )
 
     # tests
-    if args.fix_texture:
-        fixer = ShaderFixer(args.usd_path, "/World/Objects/TestObject")
-        fixer.fix_all()
+    # if args.fix_texture:
+    #     fixer = ShaderFixer(args.usd_path, "/World/Objects/TestObject")
+    #     fixer.fix_all()
 
 
-def design_ground():
-    create_ground()
-    set_ground_material(material_mdl_path="data_isaaclab/source_data/arnold/materials/Wood/Ash.mdl")
-    set_ground_material_scale((10.0, 10.0))
+# def design_ground():
+#     create_ground()
+#     set_ground_material(material_mdl_path="data_isaaclab/source_data/arnold/materials/Wood/Ash.mdl")
+#     set_ground_material_scale((10.0, 10.0))
 
 
 def disable_gravity():
@@ -128,14 +136,14 @@ def disable_gravity():
 
 def main():
     """Main function."""
-
+    log.info("Start")
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.01, device="cuda")
     sim = sim_utils.SimulationContext(sim_cfg)
     sim.set_camera_view([1.0, 0.0, 1.0], [0.0, 0.0, 0.0])
 
-    if args.ground:
-        design_ground()
+    # if args.ground:
+    #     design_ground()
     design_scene()
     if not args.gravity:
         disable_gravity()
@@ -144,6 +152,8 @@ def main():
     sim.reset()
     while simulation_app.is_running():
         sim.step()
+    
+    log.info("Done")
 
 
 if __name__ == "__main__":

@@ -16,8 +16,10 @@ import tyro
 
 @dataclass
 class Args:
-    tasks: list[str]
+    # tasks: list[str] = None
+    usd_path: str = None
     collision_mode: Literal["convexDecomposition", "convexHull", "meshSimplification"] = "convexDecomposition"
+    object_mass: float = None
 
 
 args = tyro.cli(Args)
@@ -27,7 +29,8 @@ args = tyro.cli(Args)
 ########################################################
 import argparse
 
-from omni.isaac.lab.app import AppLauncher
+# from omni.isaac.lab.app import AppLauncher
+from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser()
 AppLauncher.add_app_launcher_args(parser)
@@ -40,10 +43,10 @@ simulation_app = app_launcher.app
 ## Normal Code
 ########################################################
 from loguru import logger as log
-from pxr import Usd, UsdPhysics
+from pxr import Usd, UsdPhysics, UsdGeom
 
 from metasim.scenario.objects import RigidObjCfg
-from metasim.utils.setup_util import get_task
+# from metasim.utils.setup_util import get_task
 
 
 def is_articulation(usd_path: str):
@@ -101,22 +104,109 @@ def remove_fixed_joint(usd_path: str):
         stage.RemovePrim(prim.GetPrimPath())
     stage.Save()
 
+SKIP_PREFIXES = ("/Looks", "/materials", "/Material", "/Materials")
+
+def _is_skippable_path(prim):
+    p = prim.GetPath().pathString
+    return any(p.startswith(prefix) for prefix in SKIP_PREFIXES)
+
+def _has_rigidbody_api(stage: Usd.Stage) -> bool:
+    for prim in stage.Traverse():
+        if prim.HasAPI(UsdPhysics.RigidBodyAPI):
+            return True
+    return False
+
+def _candidate_rigidbody_roots(stage: Usd.Stage):
+    """Yield candidate Xform prims that contain collisions or meshes."""
+    candidates = set()
+
+    # Prefer parents of prims that already have CollisionAPI
+    for prim in stage.Traverse():
+        if _is_skippable_path(prim):
+            continue
+        if prim.HasAPI(UsdPhysics.CollisionAPI):
+            # Walk up to the first Xform ancestor
+            p = prim
+            while p and not p.IsA(UsdGeom.Xform):
+                p = p.GetParent()
+            if p and p != stage.GetPseudoRoot():
+                candidates.add(p)
+
+    # If no collisions yet, fall back to parents of meshes
+    if not candidates:
+        for prim in stage.Traverse():
+            if _is_skippable_path(prim):
+                continue
+            if prim.IsA(UsdGeom.Mesh):
+                p = prim
+                while p and not p.IsA(UsdGeom.Xform):
+                    p = p.GetParent()
+                if p and p != stage.GetPseudoRoot():
+                    candidates.add(p)
+
+    # If defaultPrim is a valid Xform, include it as a strong candidate
+    dp = stage.GetDefaultPrim()
+    if dp and dp.IsValid() and dp.IsA(UsdGeom.Xform) and not _is_skippable_path(dp):
+        candidates.add(dp)
+
+    # Return candidates ordered by how high they are (shallower = fewer elements)
+    return sorted(
+        candidates,
+        key=lambda c: c.GetPath().pathElementCount
+    )
+
+def ensure_rigidbody_api(usd_path: str, mass: float = None):
+    """
+    Apply UsdPhysics.RigidBodyAPI to a single top-level Xform that contains the geometry.
+    Optionally attach MassAPI with a default mass if none is present.
+    """
+    stage = Usd.Stage.Open(usd_path)
+
+    # If the asset already has a rigid body, nothing to do.
+    if _has_rigidbody_api(stage):
+        stage.Save()
+        return
+
+    candidates = _candidate_rigidbody_roots(stage)
+    if not candidates:
+        raise RuntimeError(
+            f"No suitable Xform prim found to apply RigidBodyAPI in '{usd_path}'. "
+            "Ensure the asset has an Xform parent above its mesh/collision prims."
+        )
+
+    root = candidates[0]  # pick the highest suitable Xform
+    UsdPhysics.RigidBodyAPI.Apply(root)
+
+    if mass is not None:
+        mass_api = UsdPhysics.MassAPI.Apply(root)
+        # Only set if not authored yet
+        mass_attr = mass_api.GetMassAttr()
+        if not mass_attr.HasAuthoredValueOpinion():
+            mass_attr.Set(mass)
+
+    stage.Save()
 
 def main():
+    log.info("Start")
     usd_paths = []
-    for task in args.tasks:
-        task_cfg = get_task(task)
-        for obj_cfg in task_cfg.objects:
-            if isinstance(obj_cfg, RigidObjCfg) and obj_cfg.usd_path is not None and obj_cfg.usd_path not in usd_paths:
-                usd_paths.append(obj_cfg.usd_path)
-
+    # if args.tasks is not None:
+    #     for task in args.tasks:
+    #         task_cfg = get_task(task)
+    #         for obj_cfg in task_cfg.objects:
+    #             if isinstance(obj_cfg, RigidObjCfg) and obj_cfg.usd_path is not None and obj_cfg.usd_path not in usd_paths:
+    #                 usd_paths.append(obj_cfg.usd_path)
+    
+    if args.usd_path is not None:
+        usd_paths.append(args.usd_path)
+    
     for usd_path in usd_paths:
         log.info(f"Cleaning {usd_path}")
         assert not is_articulation(usd_path), f"{usd_path} is an articulation"
         remove_articulation_root_api(usd_path)
+        ensure_rigidbody_api(usd_path, args.object_mass)
         ensure_collision_api(usd_path, args.collision_mode)
         remove_fixed_joint(usd_path)
-
+    log.info("Done")
 
 if __name__ == "__main__":
     main()
