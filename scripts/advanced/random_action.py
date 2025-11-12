@@ -19,7 +19,7 @@ import tyro
 
 @dataclass
 class Args:
-    robot: str = "franka"
+    robot: str = "ur5e_2f85" #"franka"
     js: bool = False
     """Directly generate joint space random actions."""
     num_envs: int = 1
@@ -42,20 +42,25 @@ from curobo.types.math import Pose
 
 from metasim.constants import SimType
 from metasim.scenario.scenario import ScenarioCfg
-from metasim.scenario.sensors import PinholeCameraCfg
+from metasim.scenario.cameras import PinholeCameraCfg
 from metasim.utils.kinematics import get_curobo_models
 from metasim.utils.math import quat_apply, quat_from_euler_xyz, quat_inv
-from metasim.utils.setup_util import get_robot, get_sim_env_class, get_task
-
+from metasim.utils.setup_util import get_robot
+from metasim.task.registry import get_task_class
+from metasim.utils.setup_util import get_sim_handler_class
 
 def main():
     num_envs: int = args.num_envs
-    task = get_task("pick_cube")
+    task_cls = get_task_class("pick_cube")
+    # Get default scenario from task class and update with specific parameters
+
     robot = get_robot(args.robot)
     camera = PinholeCameraCfg(pos=(1.5, 0.0, 1.5), look_at=(0.0, 0.0, 0.0))
-    scenario = ScenarioCfg(task=task, robot=robot, cameras=[camera], sim=args.sim)
-
-    env_class = get_sim_env_class(SimType(args.sim))
+    # scenario = ScenarioCfg(task=task, robot=robot, cameras=[camera], sim=args.sim)
+    scenario = task_cls.scenario.update(
+        robots=[args.robot], simulator=args.sim, num_envs=1, headless=False, cameras=[camera]
+    )
+    env_class = get_sim_handler_class(SimType(args.sim))
     env = env_class(scenario)
 
     try:
