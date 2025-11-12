@@ -26,7 +26,7 @@ from .h1_wrist_cfg import H1WristCfg
 from .iiwa14_cfg import Iiwa14Cfg
 from .iiwa_cfg import IiwaCfg
 from .kinova_gen3_cfg import KinovaGen3Cfg
-from .kinova_gen3_robotiq_2f85 import KinovaGen3Robotiq2f85Cfg
+from .kinova_gen3_robotiq_2f85_cfg import KinovaGen3Robotiq2f85Cfg
 from .koch_mjcf_cfg import KochCfg
 from .lite6_mjcf_cfg import Lite6Cfg
 from .sawyer_cfg import SawyerCfg

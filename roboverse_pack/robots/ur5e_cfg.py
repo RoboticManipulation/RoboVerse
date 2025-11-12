@@ -8,7 +8,8 @@ from metasim.utils import configclass
 
 @configclass
 class Ur5ECfg(RobotCfg):
-    """Configuration for the Universal Robots UR5e robot.
+    """
+    Configuration for the Universal Robots UR5e robot.
 
     The UR5e is a 6-DOF industrial robotic arm with medium payload capacity,
     widely used for collaborative applications and automation tasks.
@@ -19,9 +20,9 @@ class Ur5ECfg(RobotCfg):
     fix_base_link: bool = True
 
     # Asset paths
-    usd_path: str = "roboverse_data/robots/Universal_Robots_UR5e/usd/ur5e.usd"
-    urdf_path: str = "roboverse_data/robots/Universal_Robots_UR5e/urdf/ur_description/urdf/ur5e.urdf"
-    mjcf_path: str = "roboverse_data/robots/Universal_Robots_UR5e/mjcf/ur5e.xml"
+    usd_path: str = "roboverse_data/robots/ur5e/usd/ur5e.usd"
+    urdf_path: str = "roboverse_data/robots/ur5e/urdf/ur_description/urdf/ur5e.urdf"
+    mjcf_path: str = "roboverse_data/robots/ur5e/mjcf/ur5e.xml"
 
     # Physical properties
     enabled_gravity: bool = False
@@ -72,5 +73,5 @@ class Ur5ECfg(RobotCfg):
     }
 
     # UR5e has no gripper by default, gripper can be added separately if needed
-    # gripper_open_q = []
-    # gripper_close_q = []
+    gripper_open_q = [0.0]
+    gripper_close_q = [0.0]
