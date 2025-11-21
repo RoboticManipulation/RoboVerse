@@ -25,10 +25,15 @@ services:
       - ACCEPT_EULA=Y
       - PRIVACY_CONSENT=Y
       - OMNI_KIT_ACCEPT_EULA=YES
+      # Forward LLM keys
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SSH_AUTH_SOCK=/ssh-agent
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix           # 2D X path to your local desktop
       - /usr/local/cuda:/usr/local/cuda
       - ./:/home/${DOCKER_USER}/RoboVerse
+      - ${HOME}/.gitconfig:/home/vscode/.gitconfig:ro
+      - "${SSH_AUTH_SOCK:-/tmp/ssh-agent-not-set}:/ssh-agent"
     devices:
       - /dev/dri:/dev/dri                       # expose DRM nodes (helps some stacks)
     tty: true
