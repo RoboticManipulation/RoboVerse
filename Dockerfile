@@ -39,8 +39,8 @@ RUN apt update && apt install -y --no-install-recommends \
     && apt clean
 RUN apt install -y -o Dpkg::Options::="--force-confold" sudo
 
-## Install CuRoBo
-# RUN apt install -y git-lfs
+## Install git lfs
+RUN apt install -y git-lfs
 
 ## Install VirtualGL installation to share GUI remotely
 ## Test with: vglrun +v glxgears
@@ -104,6 +104,27 @@ COPY --chown=${DOCKER_USER} ./roboverse_pack ${HOME}/RoboVerse/roboverse_pack
 COPY --chown=${DOCKER_USER} ./pyproject.toml ${HOME}/RoboVerse/pyproject.toml
 
 WORKDIR ${HOME}/RoboVerse
+
+########################################################
+## Clone GeoSemPlace
+########################################################
+# RUN if [ ! -d "$HOME/RoboVerse/third_party/geo_sem_place" ]; then \
+#         git clone --branch main git@gitlab.ipb.uni-bonn.de:robotic_manipulation/geo_sem_place/geo_sem_place.git "$HOME/RoboVerse/third_party"; \
+#     fi
+
+########################################################
+## Clone GeoSemPlace Dataset
+########################################################
+# RUN if [ ! -d "$HOME/RoboVerse/third_party/geo_sem_place_dataset" ]; then \
+#         git clone --branch main git@hf.co:datasets/robotic-manipulation/geo_sem_place_dataset "$HOME/RoboVerse/third_party"; \
+#     fi
+
+########################################################
+## Clone SAM3
+########################################################
+# RUN if [ ! -d "$HOME/RoboVerse/third_party/sam3" ]; then \
+#         git clone --branch master git@github.com:RoboticManipulation/sam3.git "$HOME/RoboVerse/third_party"; \
+#     fi
 
 ########################################################
 ## Install isaaclab, mujoco, sapien3, pybullet
@@ -174,49 +195,66 @@ RUN mkdir -p ${HOME}/packages \
 #     && ./isaaclab.sh -i none \
 #     && pip cache purge
 
+# Install GeoSemPlace
+RUN mkdir -p ${HOME}/RoboVerse/third_party \
+    && cd ${HOME}/RoboVerse/third_party \
+    && eval "$(mamba shell hook --shell bash)" \
+    && mamba activate metasim \
+    # && git clone --branch main git@gitlab.ipb.uni-bonn.de:robotic_manipulation/geo_sem_place/template2text.git \
+    && git clone --branch main git@gitlab.ipb.uni-bonn.de:robotic_manipulation/geo_sem_place/geo_sem_place.git \
+    && git clone --branch main git@hf.co:datasets/robotic-manipulation/geo_sem_place_dataset \
+    && git clone --branch master git@github.com:RoboticManipulation/sam3.git \
+    # && cd ${HOME}/RoboVerse/third_party/geo_sem_place \
+    && uv pip install --upgrade pip setuptools wheel \
+    && uv pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126 \
+    && uv pip install -e "${HOME}/RoboVerse/third_party/geo_sem_place" \
+    && uv pip install -e "${HOME}/RoboVerse/third_party/sam3[notebooks]" \
+    && uv pip install pandas \
+    && uv cache clean
+
 ########################################################
 ## Install genesis
 ########################################################
-RUN mamba create -n metasim_genesis python=3.11 -y \
-    && mamba clean -a -y
-RUN cd ${HOME}/RoboVerse \
-    && eval "$(mamba shell hook --shell bash)" \
-    && mamba activate metasim_genesis \
-    && uv pip install -e ".[genesis]" \
-    && uv pip install -e "${HOME}/packages/pyroki/" \
-    # && uv pip install -e "${HOME}/third_party/curobo/" --no-build-isolation \
-    && uv pip install pygame \
-    && uv cache clean
+# RUN mamba create -n metasim_genesis python=3.11 -y \
+#     && mamba clean -a -y
+# RUN cd ${HOME}/RoboVerse \
+#     && eval "$(mamba shell hook --shell bash)" \
+#     && mamba activate metasim_genesis \
+#     && uv pip install -e ".[genesis]" \
+#     && uv pip install -e "${HOME}/packages/pyroki/" \
+#     # && uv pip install -e "${HOME}/third_party/curobo/" --no-build-isolation \
+#     && uv pip install pygame \
+#     && uv cache clean
 
 ########################################################
 ## Install isaacgym
 ########################################################
-RUN mamba create -n metasim_isaacgym python=3.8 -y \
-    && mamba clean -a -y
-RUN mkdir -p ${HOME}/packages \
-    && cd ${HOME}/packages \
-    && wget https://developer.nvidia.com/isaac-gym-preview-4 \
-    && tar -xf isaac-gym-preview-4 \
-    && rm isaac-gym-preview-4
-RUN find ${HOME}/packages/isaacgym/python -type f -name "*.py" -exec sed -i 's/np\.float/np.float32/g' {} +
-RUN cd ${HOME}/RoboVerse \
-    && eval "$(mamba shell hook --shell bash)" \
-    && mamba activate metasim_isaacgym \
-    && uv pip install -e ".[isaacgym]" "isaacgym @ ${HOME}/packages/isaacgym/python" \
-    && uv pip install pygame \
-    && uv cache clean
-## Fix error: libpython3.8.so.1.0: cannot open shared object file
-## Refer to https://stackoverflow.com/a/75872751
-RUN export CONDA_PREFIX=${HOME}/conda/envs/metasim_isaacgym \
-    && mkdir -p $CONDA_PREFIX/etc/conda/activate.d \
-    && echo "export OLD_LD_LIBRARY_PATH=\$LD_LIBRARY_PATH && export LD_LIBRARY_PATH=$CONDA_PREFIX/lib/:\$LD_LIBRARY_PATH" >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh \
-    && mkdir -p $CONDA_PREFIX/etc/conda/deactivate.d \
-    && echo "export LD_LIBRARY_PATH=\$OLD_LD_LIBRARY_PATH && unset OLD_LD_LIBRARY_PATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
-## Fix error: No such file or directory: '.../lib/python3.8/site-packages/isaacgym/_bindings/src/gymtorch/gymtorch.cpp'
-RUN mkdir -p ${HOME}/conda/envs/metasim_isaacgym/lib/python3.8/site-packages/isaacgym/_bindings/src \
-    && cp -r ${HOME}/packages/isaacgym/python/isaacgym/_bindings/src/gymtorch ${HOME}/conda/envs/metasim_isaacgym/lib/python3.8/site-packages/isaacgym/_bindings/src/gymtorch
+# RUN mamba create -n metasim_isaacgym python=3.8 -y \
+#     && mamba clean -a -y
+# RUN mkdir -p ${HOME}/packages \
+#     && cd ${HOME}/packages \
+#     && wget https://developer.nvidia.com/isaac-gym-preview-4 \
+#     && tar -xf isaac-gym-preview-4 \
+#     && rm isaac-gym-preview-4
+# RUN find ${HOME}/packages/isaacgym/python -type f -name "*.py" -exec sed -i 's/np\.float/np.float32/g' {} +
+# RUN cd ${HOME}/RoboVerse \
+#     && eval "$(mamba shell hook --shell bash)" \
+#     && mamba activate metasim_isaacgym \
+#     && uv pip install -e ".[isaacgym]" "isaacgym @ ${HOME}/packages/isaacgym/python" \
+#     && uv pip install pygame \
+#     && uv cache clean
+# ## Fix error: libpython3.8.so.1.0: cannot open shared object file
+# ## Refer to https://stackoverflow.com/a/75872751
+# RUN export CONDA_PREFIX=${HOME}/conda/envs/metasim_isaacgym \
+#     && mkdir -p $CONDA_PREFIX/etc/conda/activate.d \
+#     && echo "export OLD_LD_LIBRARY_PATH=\$LD_LIBRARY_PATH && export LD_LIBRARY_PATH=$CONDA_PREFIX/lib/:\$LD_LIBRARY_PATH" >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh \
+#     && mkdir -p $CONDA_PREFIX/etc/conda/deactivate.d \
+#     && echo "export LD_LIBRARY_PATH=\$OLD_LD_LIBRARY_PATH && unset OLD_LD_LIBRARY_PATH" >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
+# ## Fix error: No such file or directory: '.../lib/python3.8/site-packages/isaacgym/_bindings/src/gymtorch/gymtorch.cpp'
+# RUN mkdir -p ${HOME}/conda/envs/metasim_isaacgym/lib/python3.8/site-packages/isaacgym/_bindings/src \
+#     && cp -r ${HOME}/packages/isaacgym/python/isaacgym/_bindings/src/gymtorch ${HOME}/conda/envs/metasim_isaacgym/lib/python3.8/site-packages/isaacgym/_bindings/src/gymtorch
 
 ########################################################
 ## Helpful message
 ########################################################
-RUN echo 'echo "Remember to run: xhost +local:docker on the host to enable GUI applications."' >> ${HOME}/.bashrc
+# RUN echo 'echo "Remember to run: xhost +local:docker on the host to enable GUI applications."' >> ${HOME}/.bashrc

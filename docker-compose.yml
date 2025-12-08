@@ -25,9 +25,16 @@ services:
       - ACCEPT_EULA=Y
       - PRIVACY_CONSENT=Y
       - OMNI_KIT_ACCEPT_EULA=YES
+      # Forward ssh keys
+      - SSH_AUTH_SOCK=/ssh-agent
+      # Forward Huggingface keys
+      - HF_TOKEN=${HF_TOKEN}
       # Forward LLM keys
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - SSH_AUTH_SOCK=/ssh-agent
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix           # 2D X path to your local desktop
       - /usr/local/cuda:/usr/local/cuda

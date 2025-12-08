@@ -48,6 +48,12 @@
 
     // Python extra paths
     "cursorpyright.analysis.extraPaths": [
+        /*** Own ***/
+        "${workspaceFolder}/third_party/geo_sem_place",
+        "${workspaceFolder}/third_party/geo_sem_place_dataset",
+        // "${workspaceFolder}/third_party/template2text",
+        "${workspaceFolder}/third_party/sam3",
+
         /*** curobo ***/
         "${workspaceFolder}/third_party/curobo/src",
 
