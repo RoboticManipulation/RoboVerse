@@ -3,7 +3,8 @@
     "privileged": true,
     "dockerComposeFile": "../docker-compose.yml",
     "service": "metasim",
-    "workspaceFolder": "/home/${localEnv:USER}/RoboVerse",
+    // "workspaceFolder": "/home/${localEnv:USER}/RoboVerse",
+    "workspaceFolder": "/home/${localEnv:DOCKER_USER}/RoboVerse",
     "customizations": {
         "vscode": {
             "extensions": [

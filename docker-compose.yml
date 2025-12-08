@@ -18,7 +18,7 @@ services:
       - QT_X11_NO_MITSHM=1                      # avoid MIT-SHM issues
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=graphics,utility,compute
-      # VirtualGL: tell it where to do 3D rendering (host GPU X display)
+      # VirtualGL: tell it where to do 3D rendering (host GPU X display)environment
       # If your host has a GPU X server on :0, keep this:
       # - VGL_DISPLAY=:0
       - LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
@@ -39,7 +39,9 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix           # 2D X path to your local desktop
       - /usr/local/cuda:/usr/local/cuda
       - ./:/home/${DOCKER_USER}/RoboVerse
-      - ${HOME}/.gitconfig:/home/vscode/.gitconfig:ro
+      # - ${HOME}/.gitconfig:/home/vscode/.gitconfig:ro
+      - ${HOME}/.gitconfig:/home/${DOCKER_USER}/.gitconfig:ro
+      - ${HOME}/.ssh:/home/${DOCKER_USER}/.ssh:ro
       - "${SSH_AUTH_SOCK:-/tmp/ssh-agent-not-set}:/ssh-agent"
     devices:
       - /dev/dri:/dev/dri                       # expose DRM nodes (helps some stacks)

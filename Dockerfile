@@ -36,6 +36,7 @@ RUN apt update && apt install -y --no-install-recommends \
     libglib2.0-0 \
     # ref: https://stackoverflow.com/a/76778289
     libxrandr2 \
+    vim \
     && apt clean
 RUN apt install -y -o Dpkg::Options::="--force-confold" sudo
 
@@ -207,9 +208,10 @@ RUN mkdir -p ${HOME}/RoboVerse/third_party \
     # && cd ${HOME}/RoboVerse/third_party/geo_sem_place \
     && uv pip install --upgrade pip setuptools wheel \
     && uv pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126 \
-    && uv pip install -e "${HOME}/RoboVerse/third_party/geo_sem_place" \
     && uv pip install -e "${HOME}/RoboVerse/third_party/sam3[notebooks]" \
     && uv pip install pandas \
+    && uv pip install -r "${HOME}/RoboVerse/third_party/geo_sem_place/requirements.txt" \
+    && uv pip install -e "${HOME}/RoboVerse/third_party/geo_sem_place" \
     && uv cache clean
 
 ########################################################
