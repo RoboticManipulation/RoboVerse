@@ -42,6 +42,7 @@ RUN apt install -y -o Dpkg::Options::="--force-confold" sudo
 
 ## Install git lfs
 RUN apt install -y git-lfs
+RUN git lfs install
 
 ## Install VirtualGL installation to share GUI remotely
 ## Test with: vglrun +v glxgears
@@ -98,6 +99,8 @@ RUN mkdir -p ${HOME}/packages \
 COPY --chown=${DOCKER_USER} id_ed25519 ${HOME}/.ssh/id_ed25519
 COPY --chown=${DOCKER_USER} id_ed25519.pub ${HOME}/.ssh/id_ed25519.pub
 RUN ssh-keyscan github.com >> ${HOME}/.ssh/known_hosts
+RUN ssh-keyscan hf.co >> ${HOME}/.ssh/known_hosts
+RUN ssh-keyscan gitlab.ipb.uni-bonn.de >> ${HOME}/.ssh/known_hosts
 # RUN git clone --depth 1 --branch metasim git@github.com:RoboVerseOrg/RoboVerse.git ${HOME}/RoboVerse
 ## Option 2: Copy necessary files for building conda environment
 COPY --chown=${DOCKER_USER} ./metasim ${HOME}/RoboVerse/metasim
