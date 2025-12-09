@@ -95,37 +95,49 @@ RUN mkdir -p ${HOME}/packages \
 ########################################################
 ## Option 1: Clone from github
 # TODO: remove this when released
-# COPY --chown=${DOCKER_USER} id_ed25519 ${HOME}/.ssh/id_ed25519
-# RUN ssh-keyscan github.com >> ${HOME}/.ssh/known_hosts
+COPY --chown=${DOCKER_USER} id_ed25519 ${HOME}/.ssh/id_ed25519
+COPY --chown=${DOCKER_USER} id_ed25519.pub ${HOME}/.ssh/id_ed25519.pub
+RUN ssh-keyscan github.com >> ${HOME}/.ssh/known_hosts
 # RUN git clone --depth 1 --branch metasim git@github.com:RoboVerseOrg/RoboVerse.git ${HOME}/RoboVerse
 ## Option 2: Copy necessary files for building conda environment
 COPY --chown=${DOCKER_USER} ./metasim ${HOME}/RoboVerse/metasim
 COPY --chown=${DOCKER_USER} ./third_party ${HOME}/RoboVerse/third_party
 COPY --chown=${DOCKER_USER} ./roboverse_pack ${HOME}/RoboVerse/roboverse_pack
 COPY --chown=${DOCKER_USER} ./pyproject.toml ${HOME}/RoboVerse/pyproject.toml
-
 WORKDIR ${HOME}/RoboVerse
+
+########################################################
+## Check ssh access
+########################################################
+# RUN --mount=type=ssh \
+#     ssh-add -l || echo "ssh-add failed or agent has no identities"
 
 ########################################################
 ## Clone GeoSemPlace
 ########################################################
-# RUN if [ ! -d "$HOME/RoboVerse/third_party/geo_sem_place" ]; then \
-#         git clone --branch main git@gitlab.ipb.uni-bonn.de:robotic_manipulation/geo_sem_place/geo_sem_place.git "$HOME/RoboVerse/third_party"; \
-#     fi
+RUN if [ ! -d ${HOME}/RoboVerse/third_party/geo_sem_place ]; then \
+        git clone --branch main \
+            git@gitlab.ipb.uni-bonn.de:robotic_manipulation/geo_sem_place/geo_sem_place.git \
+            ${HOME}/RoboVerse/third_party/geo_sem_place; \
+    fi
 
 ########################################################
 ## Clone GeoSemPlace Dataset
 ########################################################
-# RUN if [ ! -d "$HOME/RoboVerse/third_party/geo_sem_place_dataset" ]; then \
-#         git clone --branch main git@hf.co:datasets/robotic-manipulation/geo_sem_place_dataset "$HOME/RoboVerse/third_party"; \
-#     fi
+RUN if [ ! -d ${HOME}/RoboVerse/third_party/geo_sem_place_dataset ]; then \
+        git clone --branch main \
+            git@hf.co:datasets/robotic-manipulation/geo_sem_place_dataset \
+            ${HOME}/RoboVerse/third_party/geo_sem_place_dataset; \
+    fi
 
 ########################################################
 ## Clone SAM3
 ########################################################
-# RUN if [ ! -d "$HOME/RoboVerse/third_party/sam3" ]; then \
-#         git clone --branch master git@github.com:RoboticManipulation/sam3.git "$HOME/RoboVerse/third_party"; \
-#     fi
+RUN if [ ! -d ${HOME}/RoboVerse/third_party/sam3 ]; then \
+        git clone --branch master \
+            git@github.com:RoboticManipulation/sam3.git \
+            ${HOME}/RoboVerse/third_party/sam3; \
+    fi
 
 ########################################################
 ## Install isaaclab, mujoco, sapien3, pybullet
@@ -197,21 +209,15 @@ RUN mkdir -p ${HOME}/packages \
 #     && pip cache purge
 
 # Install GeoSemPlace
-RUN mkdir -p ${HOME}/RoboVerse/third_party \
-    && cd ${HOME}/RoboVerse/third_party \
+RUN cd ${HOME}/RoboVerse/third_party \
     && eval "$(mamba shell hook --shell bash)" \
     && mamba activate metasim \
-    # && git clone --branch main git@gitlab.ipb.uni-bonn.de:robotic_manipulation/geo_sem_place/template2text.git \
-    && git clone --branch main git@gitlab.ipb.uni-bonn.de:robotic_manipulation/geo_sem_place/geo_sem_place.git \
-    && git clone --branch main git@hf.co:datasets/robotic-manipulation/geo_sem_place_dataset \
-    && git clone --branch master git@github.com:RoboticManipulation/sam3.git \
-    # && cd ${HOME}/RoboVerse/third_party/geo_sem_place \
     && uv pip install --upgrade pip setuptools wheel \
     && uv pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126 \
-    && uv pip install -e "${HOME}/RoboVerse/third_party/sam3[notebooks]" \
+    && uv pip install -e "$HOME/RoboVerse/third_party/sam3[notebooks]" \
     && uv pip install pandas \
-    && uv pip install -r "${HOME}/RoboVerse/third_party/geo_sem_place/requirements.txt" \
-    && uv pip install -e "${HOME}/RoboVerse/third_party/geo_sem_place" \
+    && uv pip install -r "$HOME/RoboVerse/third_party/geo_sem_place/requirements.txt" \
+    && uv pip install -e "$HOME/RoboVerse/third_party/geo_sem_place" \
     && uv cache clean
 
 ########################################################

@@ -3,8 +3,8 @@
     "privileged": true,
     "dockerComposeFile": "../docker-compose.yml",
     "service": "metasim",
-    // "workspaceFolder": "/home/${localEnv:USER}/RoboVerse",
-    "workspaceFolder": "/home/${localEnv:DOCKER_USER}/RoboVerse",
+    "workspaceFolder": "/home/${localEnv:USER}/RoboVerse",
+    //"workspaceFolder": "/home/${localEnv:DOCKER_USER}/RoboVerse",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -32,5 +32,11 @@
         "QT_X11_NO_MITSHM": "1",
         "LIBGL_ALWAYS_INDIRECT": "1",
         "SSH_AUTH_SOCK": "/ssh-agent"
-    }
+    },
+    "build": {
+        "ssh": [
+        "default"
+        ]
+    },
+    "postCreateCommand": "bash ./postCreate.sh"
 }
